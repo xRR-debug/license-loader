@@ -1,23 +1,20 @@
-﻿#define BREAK_WITH_ERROR( e ) { ShowWindow(GetConsoleWindow(), SW_SHOW); printf( "[-] %s. Error=%d", e, GetLastError() ); system("pause"); break; }
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <Tlhelp32.h>
-#include <shlwapi.h> 
-#include <direct.h>
 #include <string>
 #include <fstream> 
 #include "Main.h"
-#include <iostream>
-#include <dos.h>
 #include "Security.h"
+#include "gdrv_bytes.h"
+#include "drv_bytes.h"
 //#include "Utils/Lazy.h"
+
+#define BREAK_WITH_ERROR( e ) { ShowWindow(GetConsoleWindow(), SW_SHOW); printf( "[-] %s. Error=%d", e, GetLastError() ); system("pause"); break; }
+#define WIN32_LEAN_AND_MEAN
 
 #pragma comment(lib, "ntdll.lib")
 
 void CreateConsole();
 void SetWorkingDir();
+const wchar_t* gdrv_path = L"C:\\Windows\\System32\\Drivers\\gdrv.sys";
+const wchar_t* vmulti_path = L"C:\\Windows\\System32\\Drivers\\vmulti64.sys";
 
 ifstream in("hwid.txt");
 DWORD FindProcessId(const char* processname);
@@ -48,6 +45,50 @@ HRESULT DownloadStatus::OnProgress(ULONG ulProgress, ULONG ulProgressMax, ULONG 
 {
 	printf(".");
 	return S_OK;
+}
+
+bool DropDriverFromBytes(const wchar_t* path) //gdrv
+{
+	HANDLE h_file;
+	BOOLEAN b_status = FALSE;
+	DWORD byte = 0;
+
+	h_file = CreateFileW(path, GENERIC_ALL, NULL, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (GetLastError() == ERROR_FILE_EXISTS)
+		return true;
+
+	if (h_file == INVALID_HANDLE_VALUE)
+		return false;
+
+	b_status = WriteFile(h_file, shell_mapper, sizeof(shell_mapper), &byte, nullptr);
+	CloseHandle(h_file);
+
+	if (!b_status)
+		return false;
+
+	return true;
+}
+
+bool DropDriverFromBytes2(const wchar_t* path) //vmulti
+{
+	HANDLE h_file;
+	BOOLEAN b_status = FALSE;
+	DWORD byte = 0;
+
+	h_file = CreateFileW(path, GENERIC_ALL, NULL, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (GetLastError() == ERROR_FILE_EXISTS)
+		return true;
+
+	if (h_file == INVALID_HANDLE_VALUE)
+		return false;
+
+	b_status = WriteFile(h_file, drv, sizeof(drv), &byte, nullptr);
+	CloseHandle(h_file);
+
+	if (!b_status)
+		return false;
+
+	return true;
 }
 
 /*void asmbs()
@@ -134,6 +175,13 @@ bool hst()
 	}
 }
 
+auto RandomTitle = [](int iterations) {
+	std::string Title;
+	for (int i = 0; i < iterations; i++)
+		Title += rand() % 255 + 1;
+	return Title;
+	};
+
 int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) //console main() || windows application WinMain(---)
 {
 	/*if (IsAdministrator() == FALSE)
@@ -143,13 +191,15 @@ int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		exit(-1);
 	}*/
 	CreateConsole();
+	SetConsoleTitleA(RandomTitle(rand() % 2352 + 628).c_str());
+	system("color 5");
 	//LI_FN(CreateThread)(nullptr, 0, Thread, nullptr, 0, nullptr);
 	bool exit_update = false;
 	//if (IsVMware() == FALSE && IsVirtualBox() == FALSE && IsSandboxie() == FALSE && IsVM() == FALSE && MemoryBreakpointDebuggerCheck() == FALSE && Int2DCheck() == FALSE)
 	//{
 	//	HideFromDebugger();
 	//	AntiAttach();
-		//hst();
+		hst();
 #if ENABLE_LICENSING == 1
 		{
 			CLicense License;
@@ -239,61 +289,37 @@ int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	Sleep(8000);
 	printf("Run CS:GO and Have Fun!!!!! \n");
 	Sleep(1200); */
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
-	SetWorkingDir();
-
-	HANDLE hModule = NULL;
-	HANDLE hProcess = NULL;
-	HANDLE hToken = NULL;
-	void* lpBuffer = NULL;
-	DWORD dwLength = 0;
-	DWORD dwBytesRead = 0;
-	DWORD dwProcessId = 0;
-	TOKEN_PRIVILEGES priv = { 0 };
-	
+	ShowWindow(GetConsoleWindow(), SW_SHOW);
+	SetWorkingDir();	
 
 	do
 	{
-		while (!dwProcessId)
-		{
-			dwProcessId = FindProcessId("csgo.exe");
-			Sleep(100);
-		}
+		
+		DropDriverFromBytes2(vmulti_path);
+		SetFileAttributes("C:\\Windows\\System32\\Drivers\\vmulti64.sys", FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_ENCRYPTED);
+		system("sc create vmulti64 binPath= C:\\Windows\\System32\\Drivers\\vmulti64.sys type=kernel");
+		system("cls");
+		system("sc start vmulti64");
+		system("cls");
+		printf("Log::injected! Press any key to uninject...");
+		system("pause");
+		//system("cls");
 
-		while (!(FindWindowA("Valve001", NULL)))
-			Sleep(200);
 
-		//[enc_string_enable /]
-		//decrypt();
-		//lpBuffer = &hdata;
-		//dwLength = sizeof(hdata);
-		if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
-		{
-			priv.PrivilegeCount = 1;
-			priv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	} 
+	while (0);
+	{
+		system("sc stop vmulti64");
+		system("cls");
+		system("sc delete vmulti64");
+		system("cls");
+		Sleep(1000);
+		remove("C:\\Windows\\System32\\Drivers\\vmulti64.sys");
+		system("cls");
+		printf("Log::successfully uninjected the cheat...");
+		Sleep(5000);
+	}
 
-			if (LookupPrivilegeValue(NULL, SE_CREATE_GLOBAL_NAME, &priv.Privileges[0].Luid)) //SE_DEBUG_NAME
-				AdjustTokenPrivileges(hToken, FALSE, &priv, 0, NULL, NULL);
-
-			CloseHandle(hToken);
-		}
-
-		hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, FALSE, dwProcessId);
-		if (!hProcess)
-			BREAK_WITH_ERROR("Failed to open the target process!");
-
-		//hModule = LoadRemoteLibraryR(hProcess, lpBuffer, dwLength, NULL);
-		if (!hModule)
-			BREAK_WITH_ERROR("Failed to inject!");
-
-		printf("Log::Injected!");
-
-		WaitForSingleObject(hModule, -1);
-
-	} while (0);
-
-	if (hProcess)
-		CloseHandle(hProcess);
 
 	return 0;
 }
