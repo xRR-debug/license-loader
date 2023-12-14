@@ -1,6 +1,6 @@
 #include "License.h"
 
-#define HASH_SEED_ONE 0x1F63B
+#define HASH_SEED_ONE 0x1F63B //panel hash
 #define HASH_SEED_TWO 0x21AB2
 #define HASH_SEED_THR 0x3A8D6
 
@@ -467,6 +467,35 @@ bool CLicense::CheckLicense()
 	if (CheckLicenseURL(PATH, HOST_CHECK, HOST_KEY_CHECK))
 		return true;
 
+	return false;
+}
+
+bool CLicense::CheckLicenseGateMD5()
+{
+	std::string Serial = GetSerial64();
+
+	std::string UrlRequest = PATH;
+	UrlRequest.append(("gate.php?serial=") + Serial);
+
+	std::string ReciveHash = GetUrlData(UrlRequest);
+
+	if (ReciveHash.size())
+	{
+		std::string LicenseOK = ("license-success-ok-") + Serial + "-";
+
+		for (int RandomMd5 = 1; RandomMd5 <= 10; RandomMd5++)
+		{
+			std::string LicenseCheck = LicenseOK + std::to_string(RandomMd5);
+			std::string LicenseOKHash = GetHashText(LicenseCheck.c_str(), LicenseCheck.size());
+
+			if (ReciveHash == LicenseOKHash)
+			{
+				//if true
+				return true;
+			}
+		}
+	}
+	//if false
 	return false;
 }
 
