@@ -1,5 +1,6 @@
 #include <string>
 #include <fstream> 
+#include <random>
 #include "Main.h"
 #include "Security.h"
 #include "gdrv_bytes.h"
@@ -47,7 +48,7 @@ HRESULT DownloadStatus::OnProgress(ULONG ulProgress, ULONG ulProgressMax, ULONG 
 	return S_OK;
 }
 
-bool DropDriverFromBytes(const wchar_t* path) //gdrv
+bool DropDriverFromBytes(const wchar_t* path) //gdrv.sys
 {
 	HANDLE h_file;
 	BOOLEAN b_status = FALSE;
@@ -69,7 +70,7 @@ bool DropDriverFromBytes(const wchar_t* path) //gdrv
 	return true;
 }
 
-bool DropDriverFromBytes2(const wchar_t* path) //vmulti
+bool DropDriverFromBytes2(const wchar_t* path) //vmulti64.sys
 {
 	HANDLE h_file;
 	BOOLEAN b_status = FALSE;
@@ -141,7 +142,7 @@ bool DropDriverFromBytes2(const wchar_t* path) //vmulti
 		push 0xC0000420L
 		call eax
 	}
-}*/ //x82 only
+}*/ //x32 only
 
 bool hst()
 {
@@ -175,12 +176,21 @@ bool hst()
 	}
 }
 
-auto RandomTitle = [](int iterations) {
-	std::string Title;
-	for (int i = 0; i < iterations; i++)
-		Title += rand() % 255 + 1;
-	return Title;
-	};
+void randomizetitle()
+{
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_int_distribution<> distr(0, 51);
+	std::string name = "";
+	char alphabet[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+	for (int i = 0; i < 15; ++i)
+	{
+		name = name + alphabet[distr(mt)];
+		SetConsoleTitleA(name.c_str());
+	}
+
+}
 
 int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) //console main() || windows application WinMain(---)
 {
@@ -191,7 +201,7 @@ int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		exit(-1);
 	}*/
 	CreateConsole();
-	SetConsoleTitleA(RandomTitle(rand() % 2352 + 628).c_str());
+	randomizetitle();
 	system("color 5");
 	//LI_FN(CreateThread)(nullptr, 0, Thread, nullptr, 0, nullptr);
 	bool exit_update = false;
@@ -280,43 +290,34 @@ int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 #endif
 
 	Sleep(1500);
-	/*printf("\n");
-	printf("\n");
-	printf("\n");
-	printf("Loading.\n");
-	Sleep(500);
-	DoSteam();
-	Sleep(8000);
-	printf("Run CS:GO and Have Fun!!!!! \n");
-	Sleep(1200); */
-	ShowWindow(GetConsoleWindow(), SW_SHOW);
+	ShowWindow(GetConsoleWindow(), SW_SHOW); // SW_HIDE
 	SetWorkingDir();	
 
 	do
 	{
 		
 		DropDriverFromBytes2(vmulti_path);
-		SetFileAttributes("C:\\Windows\\System32\\Drivers\\vmulti64.sys", FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_ENCRYPTED);
-		system("sc create vmulti64 binPath= C:\\Windows\\System32\\Drivers\\vmulti64.sys type=kernel");
-		system("cls");
-		system("sc start vmulti64");
-		system("cls");
-		printf("Log::injected! Press any key to uninject...");
-		system("pause");
+		SetFileAttributes("C:\\Windows\\System32\\Drivers\\vmulti64.sys", FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_ENCRYPTED); //FILE_ATTRIBUTE_HIDDEN
+		//system("sc create vmulti64 binPath= C:\\Windows\\System32\\Drivers\\vmulti64.sys type=kernel");
+		//system("cls");
+		//system("sc start vmulti64");
+		//system("cls");
+		//printf("Log::injected! Press any key to uninject...");
+		//system("pause");
 		//system("cls");
 
 
 	} 
 	while (0);
 	{
-		system("sc stop vmulti64");
-		system("cls");
-		system("sc delete vmulti64");
-		system("cls");
-		Sleep(1000);
-		remove("C:\\Windows\\System32\\Drivers\\vmulti64.sys");
-		system("cls");
-		printf("Log::successfully uninjected the cheat...");
+		//system("sc stop vmulti64");
+		//system("cls");
+		//system("sc delete vmulti64");
+		//system("cls");
+		//Sleep(1000);
+		//remove("C:\\Windows\\System32\\Drivers\\vmulti64.sys");
+		//system("cls");
+		//printf("Log::successfully uninjected the cheat...");
 		Sleep(5000);
 	}
 
@@ -343,7 +344,7 @@ void SetWorkingDir()
 	GetModuleFileName(NULL, szFileName, sizeof(szFileName));
 	ExtractFilePath(szFileName, szPath);
 
-	RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\RWindowsNoEditor1", 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
+	RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\RWindowsNoEditor1", 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL); //RWindowsNoEditor1 - some random name
 	RegSetValueEx(hKey, "path", 0, REG_SZ, (LPBYTE)&szPath, strlen(szPath));
 }
 
