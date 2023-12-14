@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="linecse.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{3c188cde-f7f2-4de2-bf43-e8e7f6790f86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="binary">
+      <UniqueIdentifier>{19001902-e6a1-4916-b608-cda4a4e88b7d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="license.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="lazy.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="gdrv_bytes.h">
+      <Filter>binary</Filter>
+    </ClInclude>
+    <ClInclude Include="ntdll.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="drv_bytes.h">
+      <Filter>binary</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
