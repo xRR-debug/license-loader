@@ -1,6 +1,7 @@
 #pragma once
 
 #include "main.h"
+#include "encrypt.h"
 #include <WinInet.h>
 #include <WbemIdl.h>
 #include <iphlpapi.h>
@@ -19,16 +20,17 @@ using namespace std;
 #define ENABLE_LICENSING 1
 
 //[enc_string_enable /]
-#define HOST			"insage.ru"
-#define PATH			"/panel/"
+#define HOST			strenc("insage.ru")
+#define HOST2			strenc("insage.xyz")
+#define PATH			strenc("/panel/")
 
-#define HOST_GATE		"gate.php?serial="
-#define HOST_KEY_GATE	"license-success-ok-"
+#define HOST_GATE		strenc("gate.php?serial=")
+#define HOST_KEY_GATE	strenc("license-success-ok-")
 
-#define HOST_CHECK		"check.php?serial="
-#define HOST_KEY_CHECK	"2D262FF36ED16964-" //D2DF62F3E61D4696-
+#define HOST_CHECK		strenc("check.php?serial=")
+#define HOST_KEY_CHECK	strenc("2D262FF36ED16964-")
 
-#define CHEAT_VERSION	"1"
+#define CHEAT_VERSION	strenc("2")
 
 class CLicense
 {
