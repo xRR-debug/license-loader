@@ -1,8 +1,8 @@
 #include "License.h"
 
-#define HASH_SEED_ONE 0x1F63B //panel hash
-#define HASH_SEED_TWO 0x21AB2
-#define HASH_SEED_THR 0x3A8D6
+#define HASH_SEED_ONE 0x1F66C
+#define HASH_SEED_TWO 0x21AC4
+#define HASH_SEED_THR 0x3A8B9
 
 
 static const std::string base64_chars =
@@ -103,7 +103,7 @@ string CLicense::GetUrlData(string url)
 		return request_data;
 	}
 
-	HINTERNET hHttpRequest = HttpOpenRequestA(hHttpSession, "GET", url.c_str()
+	HINTERNET hHttpRequest = HttpOpenRequestA(hHttpSession, strenc("GET"), url.c_str()
 		, 0, 0, 0, INTERNET_FLAG_RELOAD, 0);
 
 	if (!hHttpSession)
@@ -111,7 +111,7 @@ string CLicense::GetUrlData(string url)
 		return request_data;
 	}
 
-	const char* szHeaders = "Content-Type: text/html\r\nUser-Agent: License";
+	const char* szHeaders = strenc("Content-Type: text/html\r\nUser-Agent: License");
 	char szRequest[1024] = { 0 };
 
 	if (!HttpSendRequestA(hHttpRequest, szHeaders, strlen(szHeaders), szRequest, strlen(szRequest)))
@@ -136,7 +136,7 @@ string CLicense::GetUrlData(string url)
 
 string CLicense::StringToHex(const string input)
 {
-	const char* lut = "0123456789ABCDEF";
+	const char* lut = strenc("0123456789ABCDEF");
 	size_t len = input.length();
 	string output = "";
 
@@ -297,7 +297,7 @@ string CLicense::GetCompUserName(bool User)
 
 string CLicense::GetSerialKey()
 {
-	string SerialKey = "61A345B5496B2";
+	string SerialKey = strenc("61A345B5496B2");
 	string CompName = GetCompUserName(false);
 	string UserName = GetCompUserName(true);
 
@@ -349,7 +349,7 @@ string CLicense::GetHashSerialKey()
 string CLicense::GetOldSerial()
 {
 	string Serial = "";
-	string Serial_Key = "DF83A8C25521BECE";
+	string Serial_Key = "";
 
 	string CompName = GetCompUserName(false);
 	string UserName = GetCompUserName(true);
@@ -415,7 +415,7 @@ string CLicense::GetUserDayCount()
 	string Serial = GetSerial64();
 
 	string UrlRequest = PATH;
-	UrlRequest.append("gate.php?day=" + Serial);
+	UrlRequest.append(strenc("gate.php?day=") + Serial);
 
 	string ReciveDay = GetUrlData(UrlRequest);
 	return ReciveDay;
@@ -470,43 +470,14 @@ bool CLicense::CheckLicense()
 	return false;
 }
 
-bool CLicense::CheckLicenseGateMD5()
-{
-	std::string Serial = GetSerial64();
-
-	std::string UrlRequest = PATH;
-	UrlRequest.append(("gate.php?serial=") + Serial);
-
-	std::string ReciveHash = GetUrlData(UrlRequest);
-
-	if (ReciveHash.size())
-	{
-		std::string LicenseOK = ("license-success-ok-") + Serial + "-";
-
-		for (int RandomMd5 = 1; RandomMd5 <= 10; RandomMd5++)
-		{
-			std::string LicenseCheck = LicenseOK + std::to_string(RandomMd5);
-			std::string LicenseOKHash = GetHashText(LicenseCheck.c_str(), LicenseCheck.size());
-
-			if (ReciveHash == LicenseOKHash)
-			{
-				//if true
-				return true;
-			}
-		}
-	}
-	//if false
-	return false;
-}
-
 bool CLicense::CheckVersion()
 {
 	string UrlRequest = PATH;
-	UrlRequest.append("gate.php?version=ok");
+	UrlRequest.append(strenc("gate.php?version=ok"));
 
 	string GetCheatVersion = GetUrlData(UrlRequest);
 
-	if (GetCheatVersion == "error: 1") {
+	if (GetCheatVersion == strenc("error: 1")) {
 		return false;
 	}
 	else if (GetCheatVersion == CHEAT_VERSION) {
@@ -526,20 +497,20 @@ bool CLicense::CheckVersion()
 
 void CLicense::ShowUpdateUrl()
 {
-	MessageBoxA(0, "New version available! :>", "Update", MB_OK | MB_ICONINFORMATION);
+	MessageBoxA(0, strenc("New version available! :>"), strenc("Update"), MB_OK | MB_ICONINFORMATION);
 
 	string UpdateUrl;
 
-	UpdateUrl.append("http://");
+	UpdateUrl.append(strenc("http://"));
 	UpdateUrl.append(HOST);
 	UpdateUrl.append(PATH);
-	UpdateUrl.append("update.php?update=");
+	UpdateUrl.append(strenc("update.php?update="));
 	UpdateUrl.append(GetSerial64());
 
-	string url = "url.dll,FileProtocolHandler ";
+	string url = strenc("url.dll,FileProtocolHandler ");
 	url.append(UpdateUrl);
 
-	ShellExecute(NULL, "open", "rundll32.exe", url.c_str(), NULL, SW_SHOWNORMAL);
+	ShellExecute(NULL, strenc("open"), strenc("rundll32.exe"), url.c_str(), NULL, SW_SHOWNORMAL);
 
 	exit(0);
 }
