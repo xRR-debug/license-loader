@@ -5,9 +5,11 @@
 #include "Security.h"
 #include "gdrv_bytes.h"
 #include "drv_bytes.h"
-//#include "Utils/Lazy.h"
+#include "lazy.h"
+#include "antidebug.h"
+#include "manualmap.h"
 
-#define BREAK_WITH_ERROR( e ) { ShowWindow(GetConsoleWindow(), SW_SHOW); printf( "[-] %s. Error=%d", e, GetLastError() ); system("pause"); break; }
+#define BREAK_WITH_ERROR( e ) { ShowWindow(GetConsoleWindow(), SW_SHOW); printf( strenc("[-] %s. Error=%d"), e, GetLastError() ); system(strenc("pause")); break; }
 #define WIN32_LEAN_AND_MEAN
 
 #pragma comment(lib, "ntdll.lib")
@@ -19,6 +21,8 @@ const wchar_t* vmulti_path = L"C:\\Windows\\System32\\Drivers\\vmulti64.sys";
 
 ifstream in("hwid.txt");
 DWORD FindProcessId(const char* processname);
+injec* inject;
+char inj;
 
 void RunAndCreateUpdateBatch()
 {
@@ -31,15 +35,15 @@ void RunAndCreateUpdateBatch()
 	_splitpath(buffer, drive, dir, fname, ext);
 
 
-	std::string batText = ":1\nerase "; batText += fname;
-	batText += ".exe\nif exist "; batText += fname;
-	batText += ".exe Goto 1\nerase _tmp.cmd";
+	std::string batText = strenc(":1\nerase "); batText += fname;
+	batText += strenc(".exe\nif exist "); batText += fname;
+	batText += strenc(".exe Goto 1\nerase _tmp.cmd");
 
 	FILE* f = fopen("_tmp.cmd", "wb");
 	fwrite(batText.c_str(), 1, strlen(batText.c_str()), f);
 	fclose(f);
 
-	ShellExecute(NULL, "open", "_tmp.cmd", NULL, NULL, NULL);
+	ShellExecute(NULL, strenc("open"), strenc("_tmp.cmd"), NULL, NULL, NULL);
 }
 
 HRESULT DownloadStatus::OnProgress(ULONG ulProgress, ULONG ulProgressMax, ULONG ulStatusCode, LPCWSTR wszStatusText)
@@ -48,7 +52,7 @@ HRESULT DownloadStatus::OnProgress(ULONG ulProgress, ULONG ulProgressMax, ULONG 
 	return S_OK;
 }
 
-bool DropDriverFromBytes(const wchar_t* path) //gdrv.sys
+bool DropDriverFromBytes(const wchar_t* path) //gdrv
 {
 	HANDLE h_file;
 	BOOLEAN b_status = FALSE;
@@ -70,7 +74,7 @@ bool DropDriverFromBytes(const wchar_t* path) //gdrv.sys
 	return true;
 }
 
-bool DropDriverFromBytes2(const wchar_t* path) //vmulti64.sys
+bool DropDriverFromBytes2(const wchar_t* path) //vmulti64
 {
 	HANDLE h_file;
 	BOOLEAN b_status = FALSE;
@@ -142,11 +146,11 @@ bool DropDriverFromBytes2(const wchar_t* path) //vmulti64.sys
 		push 0xC0000420L
 		call eax
 	}
-}*/ //x32 only
+}*/ //bsod x32
 
-bool hst()
+bool HstCheck()
 {
-	ifstream file("C://Windows//System32/drivers//etc//hosts"); //открываем файл hosts
+	ifstream file(strenc("C://Windows//System32/drivers//etc//hosts")); //opens hosts
 	string s;
 	char c;
 
@@ -158,15 +162,15 @@ bool hst()
 
 	file.close();
 
-	int pos = s.find("insage.ru"); //ищем там эту строку
+	int pos = s.find(strenc("insage.ru")); //founding for string
 
-	if (pos == -1)
+	if (pos == -1) //not found
 	{
 		return true;
 	}
 	else
 	{
-		const char* str2 = "hosts modificated!\n\n"; //найдено
+		const char* str2 = strenc("hosts modificated!\n\n"); //found
 		printf(str2);
 		Sleep(2000);
 		//asmbs(); //bsod
@@ -176,7 +180,7 @@ bool hst()
 	}
 }
 
-void randomizetitle()
+void RandomNameString()
 {
 	std::random_device rd;
 	std::mt19937 mt(rd());
@@ -192,24 +196,44 @@ void randomizetitle()
 
 }
 
+DWORD get_pid(char* ProcName)
+{
+	PROCESSENTRY32 lppe;
+	long PID = 0, Result = 0;
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+	if (hSnap)
+	{
+		lppe.dwSize = sizeof(PROCESSENTRY32);
+		Result = Process32First(hSnap, &lppe);
+		while (Result)
+		{
+			if (strcmp(lppe.szExeFile, ProcName) == NULL)
+			{
+				PID = lppe.th32ProcessID;
+				break;
+			}
+			Result = Process32Next(hSnap, &lppe);
+		}
+		CloseHandle(hSnap);
+	}
+	return PID;
+}
+
 int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) //console main() || windows application WinMain(---)
 {
-	/*if (IsAdministrator() == FALSE)
+	if (IsAdministrator() == FALSE)
 	{
-
 		MessageBox(NULL, "Open As Administrator", "INSAGE.RU LOADER", MB_OK);
 		exit(-1);
-	}*/
+	}
 	CreateConsole();
-	randomizetitle();
-	system("color 5");
-	//LI_FN(CreateThread)(nullptr, 0, Thread, nullptr, 0, nullptr);
-	bool exit_update = false;
-	//if (IsVMware() == FALSE && IsVirtualBox() == FALSE && IsSandboxie() == FALSE && IsVM() == FALSE && MemoryBreakpointDebuggerCheck() == FALSE && Int2DCheck() == FALSE)
-	//{
-	//	HideFromDebugger();
-	//	AntiAttach();
-		hst();
+	LI_FN(CreateThread)(nullptr, 0, Thread, nullptr, 0, nullptr);
+	if (IsVirtualBox() == FALSE && IsSandboxie() == FALSE && IsVM() == FALSE)
+	{
+		//	HideFromDebugger();
+		//	AntiAttach();
+		HstCheck();
+		bool exit_update = false;
 #if ENABLE_LICENSING == 1
 		{
 			CLicense License;
@@ -220,50 +244,50 @@ int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 			ReLicData = base64_encode(ReLicData.c_str(), ReLicData.size());
 
-			const char* news = "Checking your subscription... \n\n";
+			const char* news = strenc("Checking your subscription... \n\n");
 
 			printf(news, NewSerial.c_str());
 
 			string path = PATH;
-			path.append("rebind.php?data=");
+			path.append(strenc("rebind.php?data="));
 
 			string ReLicenseUrl = path + ReLicData;
 			string ServerRequest = License.GetUrlData(ReLicenseUrl);
 
-			if (ServerRequest == "error: 1")
+			if (ServerRequest == strenc("error: 1"))
 			{
-				const char* str = "Subscription found!\n\n";
+				const char* str = strenc("Subscription found!\n\n");
 				printf(str);
 			}
-			else if (ServerRequest == "error: 2")
+			else if (ServerRequest == strenc("error: 2"))
 			{
-				const char* str = "Subscription has expired! :<\n";
-				printf(str);
-				exit_update = true;
-				ofstream out;
-				out.open("hwid.txt");
-				out << "Your HWID: " << NewSerial.c_str() << '\n';
-				out.close();
-			}
-			else if (ServerRequest == "error: 3")
-			{
-				const char* str = "Subscription not found! :<\n";
+				const char* str = strenc("Subscription has expired! :<\n");
 				printf(str);
 				exit_update = true;
 				ofstream out;
 				out.open("hwid.txt");
-				out << "Your HWID: " << NewSerial.c_str() << '\n';
+				out << strenc("Your HWID: ") << NewSerial.c_str() << '\n';
 				out.close();
 			}
-			else if (ServerRequest == "success")
+			else if (ServerRequest == strenc("error: 3"))
 			{
-				const char* str = "Subscription activated! :>\n";
+				const char* str = strenc("Subscription not found! :<\n");
+				printf(str);
+				exit_update = true;
+				ofstream out;
+				out.open("hwid.txt");
+				out << strenc("Your HWID: ") << NewSerial.c_str() << '\n';
+				out.close();
+			}
+			else if (ServerRequest == strenc("success"))
+			{
+				const char* str = strenc("Subscription activated! :>\n");
 				printf(str);
 			}
 
 			if (License.CheckLicense() && !exit_update)
 			{
-				printf("Subscription: %s days :>\n", License.GetUserDayCount().c_str());
+				printf(strenc("Subscription: %s days :>\n"), License.GetUserDayCount().c_str());
 
 				if (License.CheckVersion())
 				{
@@ -272,57 +296,79 @@ int _stdcall  WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 			else
 			{
-				printf("Subscription: ? :<\n");
+				printf(strenc("Subscription: ? :<\n"));
 				exit_update = true;
 				ofstream out;
 				out.open("hwid.txt");
-				out << "Your HWID: " << NewSerial.c_str() << '\n';
+				out << strenc("Your HWID: ") << NewSerial.c_str() << '\n';
 				out.close();
 			}
 		}
-	
 
-	if (exit_update)
-	{
-		Sleep(2500);
-		return 0;
-	}
+
+		if (exit_update)
+		{
+			Sleep(2500);
+			return 0;
+		}
 #endif
 
-	Sleep(1500);
-	ShowWindow(GetConsoleWindow(), SW_SHOW); // SW_HIDE
-	SetWorkingDir();	
+		Sleep(1500);
+		/*printf("\n");
+		printf("\n");
+		printf("\n");
+		printf("Loading.\n");
+		Sleep(500);
+		DoSteam();
+		Sleep(8000);
+		printf("Run CS:GO and Have Fun!!!!! \n");
+		Sleep(1200); */
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+		SetWorkingDir();
 
-	do
-	{
-		
-		DropDriverFromBytes2(vmulti_path);
-		SetFileAttributes("C:\\Windows\\System32\\Drivers\\vmulti64.sys", FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_ENCRYPTED); //FILE_ATTRIBUTE_HIDDEN
-		//system("sc create vmulti64 binPath= C:\\Windows\\System32\\Drivers\\vmulti64.sys type=kernel");
-		//system("cls");
-		//system("sc start vmulti64");
-		//system("cls");
-		//printf("Log::injected! Press any key to uninject...");
-		//system("pause");
-		//system("cls");
+		do
+		{
+			
+			//DropDriverFromBytes2(vmulti_path);
+			//SetFileAttributes("C:\\Windows\\System32\\Drivers\\vmulti64.sys", FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_ENCRYPTED);
+			//system("sc create vmulti64 binPath= C:\\Windows\\System32\\Drivers\\vmulti64.sys type=kernel");
+			//system("cls");
+			//system("sc start vmulti64");
+			//system("cls");
+			SetConsoleOutputCP(CP_UTF8);
+			printf("   ██╗███╗  ██╗ ██████╗ █████╗  ██████╗ ███████╗   ██████╗ ██╗   ██╗\n");
+			printf("   ██║████╗ ██║██╔════╝██╔══██╗██╔════╝ ██╔════╝   ██╔══██╗██║   ██║\n");
+			printf("   ██║██╔██╗██║╚█████╗░███████║██║  ██╗ █████╗     ██████╔╝██║   ██║\n");
+			printf("   ██║██║╚████║ ╚═══██╗██╔══██║██║  ╚██╗██╔══╝     ██╔══██╗██║   ██║\n");
+			printf("   ██║██║ ╚███║██████╔╝██║  ██║╚██████╔╝███████╗██╗██║  ██║╚██████╔╝\n");
+			printf("   ╚═╝╚═╝  ╚══╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═╝ ╚═════╝\n");
+
+			/*DWORD pid = 0;
+		    pid = get_pid((char*)"GenshinImpact.exe");
+		    typedef unsigned char       BYTE;
+		    inject->manualmap(pid, (PBYTE)rawData); */ // BYTE name[] { ... }; //injection part//
+
+			//printf("Log::injected! Press any key to uninject...");
+			//system("pause");
+			//system("cls");
 
 
-	} 
-	while (0);
-	{
-		//system("sc stop vmulti64");
-		//system("cls");
-		//system("sc delete vmulti64");
-		//system("cls");
-		//Sleep(1000);
-		//remove("C:\\Windows\\System32\\Drivers\\vmulti64.sys");
-		//system("cls");
-		//printf("Log::successfully uninjected the cheat...");
-		Sleep(5000);
+		} while (0);
+		{
+			//system("sc stop vmulti64");
+			//system("cls");
+			//system("sc delete vmulti64");
+			//system("cls");
+			Sleep(1000);
+			//remove("C:\\Windows\\System32\\Drivers\\vmulti64.sys");
+			//system("cls");
+			//printf("Log::successfully uninjected the cheat...");
+			Sleep(5000);
+		}
+
+
+		return 0;
 	}
-
-
-	return 0;
 }
 
 LPTSTR ExtractFilePath(LPCTSTR FileName, LPTSTR buf)
@@ -344,15 +390,17 @@ void SetWorkingDir()
 	GetModuleFileName(NULL, szFileName, sizeof(szFileName));
 	ExtractFilePath(szFileName, szPath);
 
-	RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\RWindowsNoEditor1", 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL); //RWindowsNoEditor1 - some random name
+	RegCreateKeyEx(HKEY_CURRENT_USER, strenc("Software\\RWindowsNoEditor1"), 0, NULL, REG_OPTION_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
 	RegSetValueEx(hKey, "path", 0, REG_SZ, (LPBYTE)&szPath, strlen(szPath));
 }
 
 void CreateConsole()
 {
 	AllocConsole();
-	freopen("CONOUT$", "wt", stdout);
-	freopen("CONIN$", "rt", stdin);
+	freopen(strenc("CONOUT$"), strenc("wt"), stdout);
+	freopen(strenc("CONIN$"), strenc("rt"), stdin);
+	RandomNameString();
+	system(strenc("color 5"));
 }
 
 DWORD FindProcessId(const char* processname)
