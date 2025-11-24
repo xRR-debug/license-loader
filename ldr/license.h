@@ -9,7 +9,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
+#include "lazy.h"
+#include "dynamic_xorstr.h"
 
 using namespace std;
 
@@ -19,23 +20,21 @@ using namespace std;
 
 #define ENABLE_LICENSING 1
 
-//[enc_string_enable /]
-#define HOST			strenc("insage.ru")
-#define HOST2			strenc("insage.xyz")
-#define PATH			strenc("/panel/")
+#define HOST			_xor_("insage.ru").c_str()
+#define HOST2			_xor_("insage.xyz").c_str()
+#define PATH			_xor_("/panel/").c_str()
 
-#define HOST_GATE		strenc("gate.php?serial=")
-#define HOST_KEY_GATE	strenc("license-success-ok-")
-
-#define HOST_CHECK		strenc("check.php?serial=")
-#define HOST_KEY_CHECK	strenc("2D262FF36ED16964-")
-
-#define CHEAT_VERSION	strenc("2")
+#define HOST_GATE		_xor_("gate.php?serial=").c_str()
+#define HOST_KEY_GATE	_xor_("license-success-ok-").c_str()
+						
+#define HOST_CHECK		_xor_("check.php?serial=").c_str()
+#define HOST_KEY_CHECK	_xor_("B101651E4A421CB062E37C9FBBC5D96DCA3E5977B62A03644333193E9FAA58C4").c_str() //sha 256
+						
+#define CHEAT_VERSION	_xor_("4").c_str()
 
 class CLicense
 {
 private:
-	//[swap_lines]
 	string	StringToHex(const string input);
 	string	GetHashText(const void* data, const size_t data_size);
 
@@ -45,9 +44,8 @@ private:
 	string	GetCompUserName(bool User);
 	string	GetSerialKey();
 	string	GetHashSerialKey();
-	//[/swap_lines]
 public:
-	//[swap_lines]
+	string	PostUrlData(string url);
 	string	GetUrlData(string url);
 	string	GetOldSerial();
 	string	GetSerial();
@@ -57,8 +55,9 @@ public:
 	bool	CheckLicenseURL(string URL, string GATE, string KEY);
 	bool	CheckLicense();
 	bool	CheckVersion();
+	std::string GetActivatedKey(char inuserkey[16]);
+	std::string GetVersion();
 	void	ShowUpdateUrl();
-	//[/swap_lines]
 };
 
 string base64_encode(char const* bytes_to_encode, unsigned int in_len);

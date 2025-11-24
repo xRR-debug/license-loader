@@ -1,8 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="linecse.cpp" />
+    <ClCompile Include="manualmap.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="aes.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="license.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="utils">
@@ -10,6 +19,9 @@
     </Filter>
     <Filter Include="binary">
       <UniqueIdentifier>{19001902-e6a1-4916-b608-cda4a4e88b7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="security">
+      <UniqueIdentifier>{cea71a87-00ca-46bc-98f5-6feb07709d65}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -21,14 +33,51 @@
     <ClInclude Include="gdrv_bytes.h">
       <Filter>binary</Filter>
     </ClInclude>
-    <ClInclude Include="ntdll.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="drv_bytes.h">
       <Filter>binary</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="antidebug.h">
+      <Filter>security</Filter>
+    </ClInclude>
+    <ClInclude Include="manualmap.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="VMProtectSDK.h" />
+    <ClInclude Include="aes.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="xorstr.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="encrypt.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic_xorstr.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="nt.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="license-loader.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="poe.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VMProtectSDK64.dll" />
+    <None Include="VMProtectSDK32.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="VMProtectSDK64.lib" />
+    <Library Include="VMProtectSDK32.lib" />
   </ItemGroup>
 </Project>

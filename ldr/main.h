@@ -8,6 +8,8 @@
 #include <winternl.h>
 #include <urlmon.h>
 #include <Winsock.h>
+#include "aes.h"
+
 
 #pragma comment(lib ,"Advapi32.lib")
 #pragma comment(lib, "urlmon.lib")
